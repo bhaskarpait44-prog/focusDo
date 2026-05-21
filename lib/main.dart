@@ -16,7 +16,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => TopicProvider()),
-        Changeniof<TaskProvider>(),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
       ],
       child: const FocusDoApp(),
     ),
