@@ -1,0 +1,45 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches:
+      - main # You can change this to 'master' if that is your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Sets up a Java environment for the Android build
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Step 3: Sets up the Flutter SDK
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.2' # It's good practice to lock to a specific version
+          channel: 'stable'
+          cache: true # Caches dependencies for faster builds
+
+      # Step 4: Gets the project dependencies
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # Step 5: Builds the release APK
+      - name: Build APK
+        run: flutter build apk --release
+
+      # Step 6: Uploads the generated APK file so you can download it
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

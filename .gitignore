@@ -1,0 +1,25 @@
+# Dart/Flutter
+.packages
+.dart_tool/
+build/
+pubspec.lock
+
+# IDE/Editor specific
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+nbproject/
+
+# Firebase config files (IMPORTANT: contains secrets and should not be committed)
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+
+# General
+*.log
+.DS_Store
+/windows/
+/linux/
+/macos/
+/web/
