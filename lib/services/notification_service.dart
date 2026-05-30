@@ -13,6 +13,24 @@ class NotificationService {
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios),
     );
+
+    // Request permissions for Android 13+ and iOS
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    
+    // For iOS
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+    
+    // For macOS
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   Future<void> schedule(Task task, String topicName) async {
@@ -38,11 +56,19 @@ class NotificationService {
 
   NotificationDetails _buildDetails() => const NotificationDetails(
         android: AndroidNotificationDetails(
-          'focusdo_channel',
-          'FocusDo Reminders',
-          importance: Importance.high,
+          'focusdo_alarms',
+          'FocusDo Alarms',
+          channelDescription: 'Alarm notifications for tasks',
+          importance: Importance.max,
           priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+          fullScreenIntent: true,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       );
 }

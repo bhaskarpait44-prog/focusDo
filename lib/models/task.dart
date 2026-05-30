@@ -6,6 +6,7 @@ class Task {
   final DateTime? scheduledAt; // null = no alarm
   final String priority; // 'low' | 'medium' | 'high'
   final bool isDone;
+  final bool isDaily;
   final DateTime createdAt;
 
   Task({
@@ -16,6 +17,7 @@ class Task {
     this.scheduledAt,
     required this.priority,
     required this.isDone,
+    this.isDaily = false,
     required this.createdAt,
   });
 
@@ -27,7 +29,8 @@ class Task {
       'description': description,
       'scheduledAt': scheduledAt?.toIso8601String(),
       'priority': priority,
-      'isDone': isDone ? 1 : 0, // Convert boolean to integer
+      'isDone': isDone ? 1 : 0,
+      'isDaily': isDaily ? 1 : 0,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -42,7 +45,8 @@ class Task {
           ? DateTime.parse(map['scheduledAt'])
           : null,
       priority: map['priority'] ?? 'medium',
-      isDone: map['isDone'] == 1, // Convert integer to boolean
+      isDone: map['isDone'] == 1,
+      isDaily: map['isDaily'] == 1,
       createdAt: DateTime.parse(map['createdAt']),
     );
   }
@@ -53,6 +57,7 @@ class Task {
     DateTime? scheduledAt,
     String? priority,
     bool? isDone,
+    bool? isDaily,
   }) {
     return Task(
       id: id,
@@ -62,6 +67,7 @@ class Task {
       scheduledAt: scheduledAt ?? this.scheduledAt,
       priority: priority ?? this.priority,
       isDone: isDone ?? this.isDone,
+      isDaily: isDaily ?? this.isDaily,
       createdAt: createdAt,
     );
   }

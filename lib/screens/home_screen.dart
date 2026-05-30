@@ -5,6 +5,8 @@ import '../providers/topic_provider.dart';
 import 'topic_detail_screen.dart';
 import 'add_edit_topic_screen.dart';
 
+import 'calendar_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -28,6 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('FocusDo'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CalendarScreen()),
+            ),
+          ),
+        ],
       ),
       body: Consumer<TopicProvider>(
         builder: (context, provider, child) {
@@ -88,7 +99,7 @@ class TopicCard extends StatelessWidget {
       ),
       onLongPress: () => _showOptions(context),
       child: Card(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha((0.1 * 255).toInt()),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

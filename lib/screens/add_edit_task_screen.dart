@@ -22,6 +22,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
   late TextEditingController _descController;
   DateTime? _scheduledAt;
   late String _priority;
+  late bool _isDaily;
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
     _descController = TextEditingController(text: widget.task?.description ?? '');
     _scheduledAt = widget.task?.scheduledAt;
     _priority = widget.task?.priority ?? 'medium';
+    _isDaily = widget.task?.isDaily ?? false;
   }
 
   @override
@@ -46,13 +48,13 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (date == null) return;
+    if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_scheduledAt ?? DateTime.now()),
     );
-    if (time == null) return;
+    if (time == null || !mounted) return;
 
     setState(() {
       _scheduledAt = DateTime(
@@ -75,6 +77,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
         scheduledAt: _scheduledAt,
         priority: _priority,
         isDone: widget.task?.isDone ?? false,
+        isDaily: _isDaily,
         createdAt: widget.task?.createdAt ?? DateTime.now(),
       );
 
@@ -85,7 +88,9 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
         provider.updateTask(task, widget.topic.name);
       }
 
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -138,6 +143,16 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                       )
                     : null,
                 onTap: _pickDateTime,
+              ),
+              const SizedBox(height: 24),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Daily Task', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Repeats every day after completion'),
+                value: _isDaily,
+                onChanged: (value) => setState(() => _isDaily = value),
+                activeTrackColor: topicColor.withAlpha(150),
+                activeThumbColor: topicColor,
               ),
               const SizedBox(height: 24),
               const Text('Priority', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -221,7 +236,7 @@ class _PriorityChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? color : color.withOpacity(0.1),
+            color: isSelected ? color : color.withAlpha((0.1 * 255).toInt()),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: color),
           ),

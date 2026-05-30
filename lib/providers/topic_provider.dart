@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/topic.dart';
-import '../services/database_service.dart';
+import '../services/mongodb_service.dart';
 
 class TopicProvider extends ChangeNotifier {
-  final _dbService = DatabaseService.instance;
+  final _dbService = MongodbService.instance;
   List<Topic> _topics = [];
   bool _isLoading = false;
 

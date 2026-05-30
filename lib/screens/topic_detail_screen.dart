@@ -39,7 +39,7 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.topic.icon} ${widget.topic.name}'),
-        backgroundColor: topicColor.withOpacity(0.1),
+        backgroundColor: topicColor.withAlpha((0.1 * 255).toInt()),
       ),
       body: Consumer<TaskProvider>(
         builder: (context, provider, child) {
@@ -206,7 +206,7 @@ class _PriorityIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha((0.1 * 255).toInt()),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(label),
