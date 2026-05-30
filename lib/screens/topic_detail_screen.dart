@@ -37,29 +37,76 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
     final topicColor = _hexToColor(widget.topic.color);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.topic.icon} ${widget.topic.name}'),
-        backgroundColor: topicColor.withAlpha((0.1 * 255).toInt()),
-      ),
-      body: Consumer<TaskProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.tasks.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (provider.tasks.isEmpty) {
-            return const Center(child: Text('No tasks for this topic. Add one!'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.tasks.length,
-            itemBuilder: (context, index) {
-              final task = provider.tasks[index];
-              return TaskTile(task: task, topic: widget.topic);
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                widget.topic.name,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              background: Container(
+                color: topicColor.withAlpha(20),
+                child: Center(
+                  child: Opacity(
+                    opacity: 0.1,
+                    child: Text(widget.topic.icon, style: const TextStyle(fontSize: 100)),
+                  ),
+                ),
+              ),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          Consumer<TaskProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading && provider.tasks.isEmpty) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (provider.tasks.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.checklist_outlined, size: 64, color: Theme.of(context).colorScheme.outlineVariant),
+                        const SizedBox(height: 16),
+                        const Text('No tasks here yet.', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final task = provider.tasks[index];
+                      return TaskTile(task: task, topic: widget.topic);
+                    },
+                    childCount: provider.tasks.length,
+                  ),
+                ),
+              );
             },
-          );
-        },
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -67,7 +114,9 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
           ),
         ),
         backgroundColor: topicColor,
-        child: const Icon(Icons.add),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_task),
+        label: const Text('Add Task'),
       ),
     );
   }
@@ -79,78 +128,123 @@ class TaskTile extends StatelessWidget {
 
   const TaskTile({super.key, required this.task, required this.topic});
 
-  Color _hexToColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    return Color(int.parse(hex, radix: 16));
-  }
-
   @override
   Widget build(BuildContext context) {
     final isOverdue = task.scheduledAt != null &&
         task.scheduledAt!.isBefore(DateTime.now()) &&
         !task.isDone;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Checkbox(
-          value: task.isDone,
-          onChanged: (_) => Provider.of<TaskProvider>(context, listen: false)
-              .toggleTaskDone(task, topic.name),
-          activeColor: _hexToColor(topic.color),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: task.isDone ? Colors.green.withAlpha(40) : Colors.grey.withAlpha(40),
+          width: 1.5,
         ),
-        title: Text(
-          task.title,
-          style: TextStyle(
-            decoration: task.isDone ? TextDecoration.lineThrough : null,
-            fontWeight: FontWeight.bold,
-            color: isOverdue ? Colors.red : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (task.description.isNotEmpty)
-              Text(
-                task.description,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            if (task.scheduledAt != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: isOverdue ? Colors.red : Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('MMM d, h:mm a').format(task.scheduledAt!),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isOverdue ? Colors.red : Colors.grey,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddEditTaskScreen(topic: topic, task: task),
+            ),
+          ),
+          onLongPress: () => _confirmDelete(context),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Provider.of<TaskProvider>(context, listen: false)
+                      .toggleTaskDone(task, topic.name),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: task.isDone ? Colors.green : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: task.isDone ? Colors.green : Colors.grey.shade400,
+                        width: 2,
                       ),
                     ),
-                  ],
+                    child: task.isDone
+                        ? const Icon(Icons.check, size: 18, color: Colors.white)
+                        : null,
+                  ),
                 ),
-              ),
-          ],
-        ),
-        trailing: _PriorityIndicator(priority: task.priority),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddEditTaskScreen(topic: topic, task: task),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          decoration: task.isDone ? TextDecoration.lineThrough : null,
+                          color: task.isDone
+                              ? Colors.grey
+                              : isOverdue
+                                  ? Colors.red
+                                  : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      if (task.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          task.description,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (task.scheduledAt != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.alarm,
+                              size: 14,
+                              color: isOverdue ? Colors.red : Colors.grey.shade500,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              DateFormat('MMM d, h:mm a').format(task.scheduledAt!),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isOverdue ? Colors.red : Colors.grey.shade500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _PriorityIndicator(priority: task.priority),
+              ],
+            ),
           ),
         ),
-        onLongPress: () => _confirmDelete(context),
       ),
     );
   }
@@ -192,24 +286,43 @@ class _PriorityIndicator extends StatelessWidget {
     switch (priority) {
       case 'high':
         color = Colors.red;
-        label = '🔴';
+        label = 'High';
         break;
       case 'medium':
         color = Colors.orange;
-        label = '🟠';
+        label = 'Medium';
         break;
       default:
         color = Colors.green;
-        label = '🟢';
+        label = 'Low';
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withAlpha((0.1 * 255).toInt()),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(50), width: 1),
       ),
-      child: Text(label),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color.withAlpha(200),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
